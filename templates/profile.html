@@ -1,0 +1,20 @@
+<h1>Profile</h1>
+
+<a href="/app">Back to game</a>
+
+Username: {{ .user.Username }}
+Email: {{ .user.Email }}
+Bio: <input type="text" id="bio" value={{ .user.Bio }}>
+<button onclick="update()">Update</button>
+
+
+<script>
+function update(){
+    var formData = new FormData();
+    formData.append('bio', document.getElementById("bio").value);
+    fetch("/app/update_profile", {
+        method: "POST",
+        body: formData
+    });
+}
+</script>

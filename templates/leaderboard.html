@@ -1,0 +1,33 @@
+<h1>Leaderboard</h1>
+
+<a href="/app">Back to game</a>
+
+<!-- This is so vulnerable to XSS -->
+
+{{ $renderResetButtons := .isAdmin }}
+{{ range .leaders }}
+    <div>
+        {{ .Bio }}
+    </div>
+    {{ .Username }}
+    {{ .Bio }}
+    <div id="clicks-{{ .ID }}">{{ .Clicks }}</div>
+    {{ if $renderResetButtons }}
+        <button onclick='reset("clicks-{{ .ID }}", "{{ .ID }}")'>Reset score</button>
+    {{ end }}
+{{ end }}
+
+<script>
+function reset(counterDiv, ID){
+    // OWASP Top 10 2017 #5: Broken Access Control
+    // We blindly trust the client-side ID in our 'reset' functionality.
+    // See 'routes.go' for more details.
+    var formData = new FormData();
+    formData.append('id', ID);
+    fetch("/app/reset", { // tell the server we clicked => update score by 1.
+        method: "POST",
+        body: formData
+    });
+    document.getElementById(counterDiv).innerHTML = 0;
+}
+</script>

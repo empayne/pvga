@@ -1,0 +1,49 @@
+<h1>CLICK ON THIS CAT</h1>
+<div id="cat">😺</div>
+<div> Welcome back, {{ .username }}! </div>
+<div>
+    Your score is 
+    <div id="clicks">{{ .clicks }}</div>
+    clicks.</div>
+<div>Keep clicking on that cat!</div>
+<button onclick='reset("clicks", {{ .id }})'>Reset score</button>
+<a href="/app/leaderboard">Leaderboard</a>
+<a href="/app/profile">Profile</a>
+
+<script>
+// Super simple project. We can just use vanilla JS.
+// TODO: at least minify this HTML.
+document.getElementById("cat").addEventListener("mousedown", mouseDown);
+document.getElementById("cat").addEventListener("mouseup", mouseUp);
+
+function mouseDown() {
+    document.getElementById("cat").innerHTML = "🙀"; // start 'animation'
+    // TODO: add a .then() to handle error case.
+    fetch("/app/click", { // tell the server we clicked => update score by 1.
+        method: "POST"
+    });
+    // TODO: there are better ways to synchronize the backend and frontend
+    // scores. If the browser loses connectivity while clicking, the
+    // frontend click count won't match the backend click count.
+    var currentScore = document.getElementById("clicks").innerHTML;
+    currentScore++;
+    document.getElementById("clicks").innerHTML = currentScore;
+}
+
+function mouseUp() {
+    document.getElementById("cat").innerHTML = "😺"; // finish 'animation'
+}
+
+function reset(counterDiv, ID){
+    // OWASP Top 10 2017 #5: Broken Access Control
+    // We blindly trust the client-side ID in our 'reset' functionality.
+    // See 'routes.go' for more details.
+    var formData = new FormData();
+    formData.append('id', ID);
+    fetch("/app/reset", { // tell the server we clicked => update score by 1.
+        method: "POST",
+        body: formData
+    });
+    document.getElementById(counterDiv).innerHTML = 0;
+}
+</script>

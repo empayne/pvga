@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: 'postgres'
+    volumes:
+      - database_data:/var/lib/postgresql/data
+      # TODO: running initdb.d scripts is a quick, but pretty ugly way to deal
+      # with schema initialization / migration, particularly if there are
+      # multiple services talking to the same instance of pg in the future.
+      # Replace this with better migration tools.
+      - ./schema:/docker-entrypoint-initdb.d
+
+volumes:
+  database_data:
+    driver: local

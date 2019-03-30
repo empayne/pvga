@@ -1,0 +1,23 @@
+{{ template "stylesheet.html" .}}
+
+<div id="error"></div>
+<h1>LOGIN</h1>
+<form action="/login">
+    <label><b>Username</b></label>
+    <input name="username" type="text">
+    <label><b>Password</b></label>
+    <input name="password" type="password">
+    <button type="submit" formmethod="post">Login</button>
+</form>
+
+<script>
+function renderError(){
+    var urlParams = new URLSearchParams(window.location.search);
+    var username = urlParams.get('username');
+    if (username != null && username.length > 0) {
+        var errorDiv = document.getElementById("error");
+        errorDiv.innerHTML = "Incorrect login for user: " + username; // eg. <img src=x onerror="alert(1)">
+    }
+}
+renderError();
+</script>
