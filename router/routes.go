@@ -24,14 +24,7 @@ func index(c *gin.Context) {
 		username = ""
 	}
 
-	// data := struct {
-	// 	NotEscaped template.HTML
-	// }{
-	// 	NotEscaped: username,
-	// }
-
 	fmt.Println(username)
-	//c.Header("X-XSS-Protection", "123")
 	c.HTML(
 		http.StatusOK,
 		"index.html",

@@ -1,14 +1,22 @@
-<h1>CLICK ON THIS CAT</h1>
-<div id="cat">😺</div>
-<div> Welcome back, {{ .username }}! </div>
-<div>
-    Your score is 
-    <div id="clicks">{{ .clicks }}</div>
-    clicks.</div>
-<div>Keep clicking on that cat!</div>
-<button onclick='reset("clicks", {{ .id }})'>Reset score</button>
+{{ template "stylesheet.html" .}}
+{{ template "glitter.html" .}}
+
+<h1 class="title">CLICK ON THIS CAT</h1>
 <a href="/app/leaderboard">Leaderboard</a>
 <a href="/app/profile">Profile</a>
+<div class="cat-container">
+    <div class="cat" id="cat">😺</div>
+</div>
+<div class="app-text"> Welcome back, {{ .username }}! </div>
+<div class="app-text">
+    <div class="score-line">Your score is</div>
+    <div class="score-line clicks" id="clicks">{{ .clicks }}</div>
+    <div class="score-line">clicks.</div>
+</div>
+<div class="app-text">Keep clicking on that cat!</div>
+<div class="reset-button-container">
+    <button class="reset-button" onclick='reset("clicks", {{ .id }})'>🔄</button>
+</div>
 
 <script>
 // Super simple project. We can just use vanilla JS.

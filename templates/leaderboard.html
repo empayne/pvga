@@ -1,21 +1,32 @@
+{{ template "stylesheet.html" .}}
+
 <h1>Leaderboard</h1>
 
 <a href="/app">Back to game</a>
 
-<!-- This is so vulnerable to XSS -->
-
 {{ $renderResetButtons := .isAdmin }}
-{{ range .leaders }}
-    <div>
-        {{ .Bio }}
-    </div>
-    {{ .Username }}
-    {{ .Bio }}
-    <div id="clicks-{{ .ID }}">{{ .Clicks }}</div>
-    {{ if $renderResetButtons }}
-        <button onclick='reset("clicks-{{ .ID }}", "{{ .ID }}")'>Reset score</button>
+<table>
+    <tr>
+        <th>Username</th>
+        <th>Bio</th>
+        <th>Clicks</th>
+        {{ if $renderResetButtons }}
+        <th>Reset Score</th>
+        {{ end }}
+    </tr>
+    {{ range .leaders }}
+    <tr>
+        <td>{{ .Username }}</td>
+        <td>{{ .Bio }}</td>
+        <td id="clicks-{{ .ID }}">{{ .Clicks }}</td>
+        {{ if $renderResetButtons }}
+        <td>
+            <button class="reset-button reset-button-small" onclick='reset("clicks-{{ .ID }}", "{{ .ID }}")'>🔄</button>
+        </td>
+        {{ end }}
+    </tr>
     {{ end }}
-{{ end }}
+</table>
 
 <script>
 function reset(counterDiv, ID){

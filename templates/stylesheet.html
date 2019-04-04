@@ -1,2 +1,91 @@
 <style>
+body {
+	background: #7FBFC9;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+
+.title {
+    width: 100%;
+    text-align: center;
+}
+
+.login {
+    margin: auto;
+    width: 50%;
+}
+
+.login .login-input {
+    display: block;
+    margin: auto;
+    width: 20%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.login .login-submit {
+    display: block;
+    margin: auto;
+    width: 10%;
+}
+
+.cat-container {
+    width: 100%;
+}
+
+.cat {
+    /*
+        There's a bug that limits height when rendering emojis in Chrome; the
+        the bottom gets clipped for large fonts. TODO: figure out
+        transform: scale() based workaround.
+        https://stackoverflow.com/questions/52324767/
+    */
+    font-size: 160px;
+    margin: auto;
+    width: 10%;
+    text-align: center;
+    cursor: default;
+    user-select: none;
+}
+
+.app-text {
+    text-align: center;
+    font-size: 36px;
+    padding: 10px;
+}
+
+.score-line {
+    display: inline-block;
+}
+
+.reset-button-container {
+    text-align: center;
+}
+
+.reset-button {
+    font-size: 100px;
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.reset-button-small {
+    font-size: 50px;
+}
+
+.reset-button:active {
+    opacity: 0.5;
+}
+
+.clicks {
+    background-color: #fff;
+    padding-left: 5px;
+    padding-right: 5px;
+    border: 2px solid #000;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+table, th, td {
+  border: 1px solid #000;
+}
 </style>

