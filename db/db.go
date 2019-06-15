@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Database hold our connection to SQL / has our db operations defined on it
@@ -30,7 +33,7 @@ func InitDatabase() *Database {
 	// TODO: de-hardcode
 	conn, err := sql.Open("postgres", "postgres://postgres:postgres@localhost/postgres?sslmode=disable")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err) // kill server if we can't use DB on startup
 	}
 	return &Database{
 		conn: conn,
@@ -38,7 +41,7 @@ func InitDatabase() *Database {
 }
 
 // Assumes that there's only _one_ row and _one_ user.
-func readUsersFromRows(rows *sql.Rows) []*User {
+func readUsersFromRows(rows *sql.Rows) ([]*User, error) {
 	var users []*User
 
 	for rows.Next() {
@@ -55,17 +58,17 @@ func readUsersFromRows(rows *sql.Rows) []*User {
 		)
 
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		users = append(users, &u)
 	}
 
-	return users
+	return users, nil
 }
 
 // ReadUserByUsername queries the top-level model by username (used for login).
-func (db *Database) ReadUserByUsername(username string) *User {
+func (db *Database) ReadUserByUsername(username string) (*User, error) {
 	// TODO: refactor so SELECT ... FROM ... isn't repeated in three places
 	rows, err := db.conn.Query(`
 		SELECT id, username, email, bio, password, clicks, last_click, is_admin
@@ -75,20 +78,24 @@ func (db *Database) ReadUserByUsername(username string) *User {
 	`, username)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	u := readUsersFromRows(rows)
+	u, err := readUsersFromRows(rows)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if len(u) > 0 {
-		return u[0]
+		return u[0], nil
 	}
 
-	return nil
+	return nil, nil
 }
 
 // ReadUserByID queries the top-level model by ID (used everywhere but login).
-func (db *Database) ReadUserByID(id string) *User {
+func (db *Database) ReadUserByID(id string) (*User, error) {
 	// TODO: refactor so SELECT ... FROM ... isn't repeated in three places
 	rows, err := db.conn.Query(`
 		SELECT id, username, email, bio, password, clicks, last_click, is_admin
@@ -98,56 +105,51 @@ func (db *Database) ReadUserByID(id string) *User {
 	`, id)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return readUsersFromRows(rows)[0] // should only contain one user
+	users, err := readUsersFromRows(rows) // should only contain one user
+	return users[0], err
 }
 
 // IncrementClicks will update the user's click count in database.
 // This will be called a lot. Should be paired with UpdateLastClick.
-func (db *Database) IncrementClicks(id string, count int) {
+func (db *Database) IncrementClicks(id string, count int) error {
 	_, err := db.conn.Exec(`
 		UPDATE users
 		SET clicks = clicks + $1
 		WHERE id = $2
 	`, count, id)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	return err
 }
 
 // UpdateLastClick updates the 'last click' timestamp in database.
 // This should be called along with every call to IncrementClicks.
-func (db *Database) UpdateLastClick(id string) {
+func (db *Database) UpdateLastClick(id string) error {
 	_, err := db.conn.Exec(`
 		UPDATE users
 		SET last_click = CURRENT_TIMESTAMP
 		WHERE id = $1
 	`, id)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	return err
 }
 
 // ResetClicks sets the user's click count to 0.
-func (db *Database) ResetClicks(id string) {
+func (db *Database) ResetClicks(id string) error {
 	_, err := db.conn.Exec(`
 		UPDATE users
 		SET clicks = 0
 		WHERE id = $1
 	`, id)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	return err
 }
 
 // ReadUsersByClicksDescending is used to construct the leaderboard. Read
 // the users with the top N clicks.
-func (db *Database) ReadUsersByClicksDescending(userCount int) []*User {
+func (db *Database) ReadUsersByClicksDescending(userCount int) ([]*User, error) {
 	// TODO: refactor so SELECT ... FROM ... isn't repeated in three places
 	rows, err := db.conn.Query(`
 		SELECT id, username, email, bio, password, clicks, last_click, is_admin
@@ -164,14 +166,20 @@ func (db *Database) ReadUsersByClicksDescending(userCount int) []*User {
 }
 
 // UpdateBio updates the user's bio
-func (db *Database) UpdateBio(id string, bio string) {
+func (db *Database) UpdateBio(id string, bio string) error {
 	stmt := "UPDATE users SET bio = '" + bio + "' WHERE id = '" + id + "'"
 
 	fmt.Println(stmt)
 
 	_, err := db.conn.Exec(stmt)
 
-	if err != nil {
-		log.Fatal(err)
+	// OWASP Top 10 2017 #6: Security Misconfiguration
+	// We shouldn't send a stack trace in an error message, but if DEBUG is set
+	// in our environment, this information will be provided to an attacker.
+	// See 'router.go' for more information.
+	if len(os.Getenv("DEBUG")) > 0 {
+		return errors.Wrap(err, "")
 	}
+
+	return err
 }

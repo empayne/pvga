@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -15,16 +14,15 @@ import (
 func index(c *gin.Context) {
 	// OWASP Top 10 2017 #5: Broken Access Control
 	params := c.Request.URL.Query()
-	fmt.Println(params)
 	var username string
 
+	// TODO: is this necessary?
 	if len(params["username"]) > 0 {
 		username = params["username"][0]
 	} else {
 		username = ""
 	}
 
-	fmt.Println(username)
 	c.HTML(
 		http.StatusOK,
 		"index.html",
@@ -35,9 +33,13 @@ func index(c *gin.Context) {
 func app(c *gin.Context) {
 	session := sessions.Default(c)
 	db := getDatabaseConnection(c)
-
 	id := session.Get("user").(string)
-	u := db.ReadUserByID(id)
+
+	u, err := db.ReadUserByID(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	c.HTML(
 		http.StatusOK,
@@ -49,10 +51,20 @@ func app(c *gin.Context) {
 func leaderboard(c *gin.Context) {
 	session := sessions.Default(c)
 	db := getDatabaseConnection(c)
-
 	id := session.Get("user").(string)
-	u := db.ReadUserByID(id)
-	leaders := db.ReadUsersByClicksDescending(5)
+
+	u, err := db.ReadUserByID(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	// TODO: make the '5' parameter (ie. scoreboard size) configurable
+	leaders, err := db.ReadUsersByClicksDescending(5)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	// This is pretty dangerous - we pass in the entire user object into
 	// our template. We only expose the properties we directly access in the
@@ -70,9 +82,13 @@ func leaderboard(c *gin.Context) {
 func profile(c *gin.Context) {
 	session := sessions.Default(c)
 	db := getDatabaseConnection(c)
-
 	id := session.Get("user").(string)
-	u := db.ReadUserByID(id)
+
+	u, err := db.ReadUserByID(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	c.HTML(
 		http.StatusOK,
@@ -93,7 +109,12 @@ func login(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	u := db.ReadUserByUsername(username)
+	u, err := db.ReadUserByUsername(username)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
 	valid := u != nil &&
 		len(u.Username) > 0 &&
 		username == u.Username &&
@@ -117,16 +138,27 @@ func login(c *gin.Context) {
 func click(c *gin.Context) {
 	session := sessions.Default(c)
 	db := getDatabaseConnection(c)
-
 	id := session.Get("user").(string)
-	db.IncrementClicks(id, 1)
-	db.UpdateLastClick(id)
+
+	// TODO: put these two db operations in a single transaction
+	err := db.IncrementClicks(id, 1)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	err = db.UpdateLastClick(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	c.JSON(200, nil)
 }
 
 func reset(c *gin.Context) {
 	db := getDatabaseConnection(c)
+	id := c.PostForm("id")
 
 	// OWASP Top 10 2017 #5: Broken Access Control
 	// We blindly trust that the ID in the POST form hasn't been modified and
@@ -140,9 +172,18 @@ func reset(c *gin.Context) {
 	// - if admin == true: use the id from the POST form (can reset any user)
 	// - if admin == false: use the id from the session, ignore POST param
 
-	id := c.PostForm("id")
-	db.ResetClicks(id)
-	db.UpdateLastClick(id)
+	// TODO: put these two db operations in a single transaction
+	err := db.ResetClicks(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	err = db.UpdateLastClick(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	c.JSON(200, nil)
 }
@@ -155,7 +196,11 @@ func updateProfile(c *gin.Context) {
 	bio := c.PostForm("bio")
 
 	// We only support updating the bio for now
-	db.UpdateBio(id, bio)
+	err := db.UpdateBio(id, bio)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	c.JSON(200, nil)
 }

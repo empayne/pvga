@@ -2,10 +2,12 @@ package router
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/empayne/pvga/db"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // Router olds the Gin routing engine, database connection, and config info.
@@ -42,6 +44,20 @@ func checkAuth() gin.HandlerFunc {
 			c.Next() // Continue down the chain to handler etc
 		}
 	}
+}
+
+func setErrorOnContext(c *gin.Context, err error) {
+	type stackTracer interface {
+		StackTrace() errors.StackTrace
+	}
+	// TODO: how to make this work for pq errors?
+	tracer := err.(error).(stackTracer)
+
+	// OWASP Top 10 2017 #6: Security Misconfiguration
+	// We shouldn't send a stack trace in an error message, but if DEBUG is set
+	// in our environment, this information will be provided to an attacker.
+	// See 'db.go' for more information.
+	c.JSON(http.StatusInternalServerError, gin.H{"Error": err, "StackTrace": tracer.StackTrace()})
 }
 
 // CreateRouter sets up paths / stores database and config info.

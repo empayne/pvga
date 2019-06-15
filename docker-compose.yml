@@ -16,6 +16,10 @@ services:
       # Replace this with better migration tools.
       - ./schema:/docker-entrypoint-initdb.d
 
+# TODO: 'go run main.go' should be spun up in a Docker container with DEBUG
+# environment variable set
+
+
 volumes:
   database_data:
     driver: local
