@@ -171,7 +171,7 @@ func click(c *gin.Context) {
 	id := session.Get("user").(string)
 
 	// TODO: put these two db operations in a single transaction
-	err := db.IncrementClicks(id, 1)
+	err = db.IncrementClicks(id, 1)
 	if err != nil {
 		setErrorOnContext(c, err)
 		return
@@ -207,7 +207,7 @@ func reset(c *gin.Context) {
 	// - if admin == false: use the id from the session, ignore POST param
 
 	// TODO: put these two db operations in a single transaction
-	err := db.ResetClicks(id)
+	err = db.ResetClicks(id)
 	if err != nil {
 		setErrorOnContext(c, err)
 		return
@@ -234,7 +234,7 @@ func updateProfile(c *gin.Context) {
 	id := session.Get("user").(string)
 	bio := c.PostForm("bio")
 
-	err := db.UpdateBio(id, bio)
+	err = db.UpdateBio(id, bio)
 	if err != nil {
 		setErrorOnContext(c, err)
 		return
