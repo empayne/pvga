@@ -4,6 +4,8 @@
 <h1 class="title">CLICK ON THIS CAT</h1>
 <a href="/app/leaderboard">Leaderboard</a>
 <a href="/app/profile">Profile</a>
+<a href="#" onclick="importSave()">Import Save</a>
+<a href="#" onclick="exportSave()">Export Save</a>
 <div class="cat-container">
     <div class="cat" id="cat">😺</div>
 </div>
@@ -48,10 +50,34 @@ function reset(counterDiv, ID){
     // See 'routes.go' for more details.
     var formData = new FormData();
     formData.append('id', ID);
-    fetch("/app/reset", { // tell the server we clicked => update score by 1.
+    fetch("/app/reset", {
         method: "POST",
         body: formData
     });
     document.getElementById(counterDiv).innerHTML = 0;
+}
+
+function importSave(){
+    var saveData = prompt("To import your saved game, please paste your data from the 'Export Save' option below, then press OK.")
+    if (saveData){
+        var formData = new FormData();
+        formData.append('savedata', saveData);
+        fetch("/app/import", {
+            method: "POST",
+            body: formData
+        }).then(function(){
+            //location.reload();
+        });
+    }
+}
+
+function exportSave(){
+    fetch("/app/export", {
+        method: "GET"
+    })
+    .then(response => response.json())
+    .then(json => {
+        prompt("To export your saved game, please copy and paste the data below to another location. You can import this data later via the 'Import Save' option." , json.Data)
+    })
 }
 </script>

@@ -2,9 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -124,6 +122,18 @@ func (db *Database) IncrementClicks(id string, count int) error {
 	return err
 }
 
+// UpdateClicks sets the user's click count to a specific value. Used by our
+// import save data functionality. Should be paird with UpdateLastClick.
+func (db *Database) UpdateClicks(id string, count int) error {
+	_, err := db.conn.Exec(`
+		UPDATE users
+		SET clicks = $1
+		WHERE id = $2
+	`, count, id)
+
+	return err
+}
+
 // UpdateLastClick updates the 'last click' timestamp in database.
 // This should be called along with every call to IncrementClicks.
 func (db *Database) UpdateLastClick(id string) error {
@@ -169,17 +179,9 @@ func (db *Database) ReadUsersByClicksDescending(userCount int) ([]*User, error) 
 func (db *Database) UpdateBio(id string, bio string) error {
 	stmt := "UPDATE users SET bio = '" + bio + "' WHERE id = '" + id + "'"
 
-	fmt.Println(stmt)
-
 	_, err := db.conn.Exec(stmt)
 
-	// OWASP Top 10 2017 #6: Security Misconfiguration
-	// We shouldn't send a stack trace in an error message, but if DEBUG is set
-	// in our environment, this information will be provided to an attacker.
-	// See 'router.go' for more information.
-	if len(os.Getenv("DEBUG")) > 0 {
-		return errors.Wrap(err, "")
-	}
-
-	return err
+	// Return an error containing a stacktrace here to demonstrate #6: Security
+	// Misconfiguration. See 'router.go' for more information.
+	return errors.Wrap(err, "")
 }

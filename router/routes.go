@@ -2,7 +2,9 @@ package router
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/empayne/redundantserializer"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -188,6 +190,7 @@ func reset(c *gin.Context) {
 	c.JSON(200, nil)
 }
 
+// We only support updating the bio for now
 func updateProfile(c *gin.Context) {
 	session := sessions.Default(c)
 	db := getDatabaseConnection(c)
@@ -195,8 +198,82 @@ func updateProfile(c *gin.Context) {
 	id := session.Get("user").(string)
 	bio := c.PostForm("bio")
 
-	// We only support updating the bio for now
 	err := db.UpdateBio(id, bio)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	c.JSON(200, nil)
+}
+
+/*
+	Import / export functions:
+*/
+
+// Create 'save data' containing the user's bio and score using
+// redundantserializer library, then send it back to the user via UI.
+func exportData(c *gin.Context) {
+	session := sessions.Default(c)
+	db := getDatabaseConnection(c)
+
+	id := session.Get("user").(string)
+
+	// Contains bio and score to export
+	u, err := db.ReadUserByID(id)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	// TODO: get rid of new 'score' terminology, it should just be 'clicks'
+	serializableMap := redundantserializer.SerializableMap{
+		"bio":   u.Bio,
+		"score": strconv.Itoa(u.Clicks),
+	}
+	saveData, err := redundantserializer.Serialize(serializableMap)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	c.JSON(200, gin.H{"Data": saveData})
+}
+
+// User has sent the 'save data' back to us via UI. Get the original bio and
+// score back from redundantserializer, then update the DB accordingly.
+func importData(c *gin.Context) {
+	session := sessions.Default(c)
+	db := getDatabaseConnection(c)
+
+	id := session.Get("user").(string)
+	saveData := c.PostForm("savedata")
+
+	deserializedMap, err := redundantserializer.Deserialize(&saveData)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	bio, score, err := readSaveData(deserializedMap)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	err = db.UpdateBio(id, *bio)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	err = db.UpdateClicks(id, *score)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+
+	err = db.UpdateLastClick(id)
 	if err != nil {
 		setErrorOnContext(c, err)
 		return

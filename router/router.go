@@ -1,8 +1,13 @@
 package router
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/empayne/redundantserializer"
 
 	"github.com/empayne/pvga/db"
 	"github.com/gin-gonic/contrib/sessions"
@@ -50,14 +55,42 @@ func setErrorOnContext(c *gin.Context, err error) {
 	type stackTracer interface {
 		StackTrace() errors.StackTrace
 	}
-	// TODO: how to make this work for pq errors?
-	tracer := err.(error).(stackTracer)
+
+	errorJSON := gin.H{"Error": err.Error()}
+	_, ok := err.(error).(stackTracer)
 
 	// OWASP Top 10 2017 #6: Security Misconfiguration
 	// We shouldn't send a stack trace in an error message, but if DEBUG is set
 	// in our environment, this information will be provided to an attacker.
-	// See 'db.go' for more information.
-	c.JSON(http.StatusInternalServerError, gin.H{"Error": err, "StackTrace": tracer.StackTrace()})
+	// See UpdateBio in 'db.go' for a sample error that returns a stack trace.
+	if ok && len(os.Getenv("DEBUG")) > 0 {
+		tracer := err.(error).(stackTracer)
+		// TODO: concatenating strings in a for loop is suboptimal, fix that
+		stackTraceString := ""
+		// StackTrace handling from https://godoc.org/github.com/pkg/errors
+		for _, f := range tracer.StackTrace() {
+			stackTraceString = stackTraceString + fmt.Sprintf("%+s:%d\n", f, f)
+		}
+
+		errorJSON["StackTrace"] = stackTraceString
+	}
+
+	c.JSON(http.StatusInternalServerError, errorJSON)
+}
+
+func readSaveData(deserializedMap redundantserializer.SerializableMap) (*string, *int, error) {
+	bio, okBio := deserializedMap["bio"]
+	scoreStr, okScore := deserializedMap["score"]
+	if !(okBio && okScore) {
+		return nil, nil, errors.New("Could not read bio and score from save data")
+	}
+
+	score, err := strconv.Atoi(scoreStr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &bio, &score, nil
 }
 
 // CreateRouter sets up paths / stores database and config info.
@@ -78,6 +111,8 @@ func CreateRouter(db *db.Database) *Router {
 	authRequired.POST("/click", click)
 	authRequired.POST("/reset", reset)
 	authRequired.POST("/update_profile", updateProfile)
+	authRequired.GET("/export", exportData)
+	authRequired.POST("/import", importData)
 
 	return &Router{
 		engine: router,
