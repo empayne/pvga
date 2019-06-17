@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -30,12 +29,12 @@ func useDatabase(conn *db.Database) gin.HandlerFunc {
 }
 
 // Inspired by: https://stackoverflow.com/questions/34046194/
-func getDatabaseConnection(c *gin.Context) *db.Database {
+func getDatabaseConnection(c *gin.Context) (*db.Database, error) {
 	dbConn, ok := c.MustGet("databaseConn").(*db.Database)
 	if !ok {
-		log.Fatal("Could not use database in handler.")
+		return nil, errors.New("Could not use database in handler")
 	}
-	return dbConn
+	return dbConn, nil
 }
 
 // Inspired by: https://github.com/Depado/gin-auth-example/blob/master/main.go
@@ -63,6 +62,10 @@ func setErrorOnContext(c *gin.Context, err error) {
 	// We shouldn't send a stack trace in an error message, but if DEBUG is set
 	// in our environment, this information will be provided to an attacker.
 	// See UpdateBio in 'db.go' for a sample error that returns a stack trace.
+	//
+	// We should have a more robust method to stop stack traces from getting
+	// into production (eg. don't just check that a custom environment variable
+	// is defined).
 	if ok && len(os.Getenv("DEBUG")) > 0 {
 		tracer := err.(error).(stackTracer)
 		// TODO: concatenating strings in a for loop is suboptimal, fix that

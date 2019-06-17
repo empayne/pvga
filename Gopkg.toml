@@ -41,6 +41,15 @@
   branch = "master"
   name = "github.com/gin-gonic/contrib"
 
+# OWASP Top 10 2017 #9: Using Components with Known Vulnerabilities
+# We have our redundantserializer version pinned to v1.0.0. A newer version
+# (v1.0.1) was released to fix its XXE vulnerability, but pvga will not use
+# this updated version.
+#
+# We should specify a more permissive version range (eg. "~1.0.0" will use
+# v.1.0.1), or use a tool like Greenkeeper that periodically updates our
+# dependencies.
+
 [[constraint]]
   name = "github.com/empayne/redundantserializer"
-  version = "1.0.0"
+  version = "=1.0.0"

@@ -14,7 +14,6 @@ import (
 */
 
 func index(c *gin.Context) {
-	// OWASP Top 10 2017 #5: Broken Access Control
 	params := c.Request.URL.Query()
 	var username string
 
@@ -34,7 +33,11 @@ func index(c *gin.Context) {
 
 func app(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 	id := session.Get("user").(string)
 
 	u, err := db.ReadUserByID(id)
@@ -52,7 +55,11 @@ func app(c *gin.Context) {
 
 func leaderboard(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 	id := session.Get("user").(string)
 
 	u, err := db.ReadUserByID(id)
@@ -83,7 +90,11 @@ func leaderboard(c *gin.Context) {
 
 func profile(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 	id := session.Get("user").(string)
 
 	u, err := db.ReadUserByID(id)
@@ -106,7 +117,11 @@ func profile(c *gin.Context) {
 // Inspired by: https://github.com/Depado/gin-auth-example/blob/master/main.go
 func login(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	username := c.PostForm("username")
 	password := c.PostForm("password")
@@ -131,6 +146,15 @@ func login(c *gin.Context) {
 			c.Redirect(301, "/app")
 		}
 	} else {
+		// OWASP Top 10 2017 #2: Broken Authentication
+		// We do nothing to limit the number of failed login attempts, so we can
+		// try to bruteforce a user's password via a wordlist of known passwords
+		// (eg. rockyou.txt).
+		//
+		// We should be limiting the number of login attempts to prevent a
+		// bruteforce attack (eg. increasing delays between failed attempts,
+		// locking an account after N failed attempts).
+
 		// TODO: I think that blindly concatenating URL parameters here is
 		// safe in this case (eg. not an open redirect), but double-check this.
 		c.Redirect(301, "/?username="+username)
@@ -139,7 +163,11 @@ func login(c *gin.Context) {
 
 func click(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 	id := session.Get("user").(string)
 
 	// TODO: put these two db operations in a single transaction
@@ -159,7 +187,11 @@ func click(c *gin.Context) {
 }
 
 func reset(c *gin.Context) {
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 	id := c.PostForm("id")
 
 	// OWASP Top 10 2017 #5: Broken Access Control
@@ -193,7 +225,11 @@ func reset(c *gin.Context) {
 // We only support updating the bio for now
 func updateProfile(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	id := session.Get("user").(string)
 	bio := c.PostForm("bio")
@@ -215,7 +251,15 @@ func updateProfile(c *gin.Context) {
 // redundantserializer library, then send it back to the user via UI.
 func exportData(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
+	if err != nil {
+		setErrorOnContext(c, err)
+		return
+	}
 
 	id := session.Get("user").(string)
 
@@ -244,7 +288,7 @@ func exportData(c *gin.Context) {
 // score back from redundantserializer, then update the DB accordingly.
 func importData(c *gin.Context) {
 	session := sessions.Default(c)
-	db := getDatabaseConnection(c)
+	db, err := getDatabaseConnection(c)
 
 	id := session.Get("user").(string)
 	saveData := c.PostForm("savedata")

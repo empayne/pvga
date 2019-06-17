@@ -169,7 +169,7 @@ func (db *Database) ReadUsersByClicksDescending(userCount int) ([]*User, error) 
 	`, userCount)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return readUsersFromRows(rows)
@@ -177,6 +177,23 @@ func (db *Database) ReadUsersByClicksDescending(userCount int) ([]*User, error) 
 
 // UpdateBio updates the user's bio
 func (db *Database) UpdateBio(id string, bio string) error {
+	// OWASP Top 10 2017 #1: Injection
+	// We construct our SQL query via string concatenation with untrusted user
+	// input, so we're vulnerable to a SQL injection. For example, if bio is:
+	//
+	// "' WHERE 0=1; DROP TABLE users; --"
+	//
+	// then the attacker can drop out table, as the query is expanded to:
+	//
+	// UPDATE users SET bio = '' WHERE 0=1; DROP TABLE users; --' WHERE id = ...
+	//
+	// The attacker can make arbitrary modifications to our database, as well as
+	// read arbitrary DB contents via their own 'bio' field.
+	//
+	// To avoid injection, we should be using setting parameters in Golang's
+	// "Query" function (see other DB functions in 'db.go'), rather than
+	// constructing SQL queries via string concatenation.
+
 	stmt := "UPDATE users SET bio = '" + bio + "' WHERE id = '" + id + "'"
 
 	_, err := db.conn.Exec(stmt)

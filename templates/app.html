@@ -45,6 +45,8 @@ function mouseUp() {
 }
 
 function reset(counterDiv, ID){
+    // TODO: refactor common .js functionalities (eg. reset)
+
     // OWASP Top 10 2017 #5: Broken Access Control
     // We blindly trust the client-side ID in our 'reset' functionality.
     // See 'routes.go' for more details.
