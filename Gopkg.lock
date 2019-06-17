@@ -10,6 +10,14 @@
   version = "v1.2"
 
 [[projects]]
+  digest = "1:22620c8b1c08d2fc47005aa8ee0ac2ebb1d8bce9514f926eb0d47faf97429a2e"
+  name = "github.com/empayne/redundantserializer"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "308810e45fee1bb0975fed0d44aebc53da9f7655"
+  version = "1.0.0"
+
+[[projects]]
   digest = "1:0594af97b2f4cec6554086eeace6597e20a4b69466eb4ada25adf9f4300dddd2"
   name = "github.com/garyburd/redigo"
   packages = [
@@ -90,6 +98,22 @@
   version = "v1.1.6"
 
 [[projects]]
+  branch = "master"
+  digest = "1:846f4efe02d404e5ddc3fd26e5e0440f9c0df3c6f76a90b51c722c1dad725d42"
+  name = "github.com/lestrrat-go/libxml2"
+  packages = [
+    ".",
+    "clib",
+    "dom",
+    "internal/debug",
+    "parser",
+    "types",
+    "xpath",
+  ]
+  pruneopts = "UT"
+  revision = "f24a389bbd76bf20b2139896da78cba180802939"
+
+[[projects]]
   digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
   name = "github.com/lib/pq"
   packages = [
@@ -123,6 +147,14 @@
   pruneopts = "UT"
   revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
   version = "1.0.1"
+
+[[projects]]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:4887e9e89c80299aa520d718239809fdd2a47a9aa394909b169959bfbc424ddf"
@@ -160,9 +192,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/empayne/redundantserializer",
     "github.com/gin-gonic/contrib/sessions",
     "github.com/gin-gonic/gin",
     "github.com/lib/pq",
+    "github.com/pkg/errors",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -40,3 +40,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gin-gonic/contrib"
+
+[[constraint]]
+  name = "github.com/empayne/redundantserializer"
+  version = "1.0.0"
