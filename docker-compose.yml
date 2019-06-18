@@ -17,7 +17,8 @@ services:
       - ./schema:/docker-entrypoint-initdb.d
 
 # TODO: 'go run main.go' should be spun up in a Docker container with DEBUG
-# environment variable set
+# environment variable set, PG_CONNECTION_STRING set to Docker equivalent of
+# postgres://postgres:postgres@localhost/postgres?sslmode=disable
 
 
 volumes:

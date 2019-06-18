@@ -75,10 +75,10 @@ func leaderboard(c *gin.Context) {
 		return
 	}
 
-	// This is pretty dangerous - we pass in the entire user object into
+	// This is pretty dangerous - we pass in the entire 'leaders' object into
 	// our template. We only expose the properties we directly access in the
-	// template, but we're one typo away from exposing other users' email /
-	// password info to the client...
+	// template, but we're one typo away from exposing a different user's email
+	// and password info to the client...
 	// TODO: use an intermediate struct that only contains the data we're
 	// interested in.
 	c.HTML(
@@ -270,7 +270,8 @@ func exportData(c *gin.Context) {
 		return
 	}
 
-	// TODO: get rid of new 'score' terminology, it should just be 'clicks'
+	// TODO: get rid of extraneous 'score' terminology, we should just be using
+	// the 'clicks' consistently.
 	serializableMap := redundantserializer.SerializableMap{
 		"bio":   u.Bio,
 		"score": strconv.Itoa(u.Clicks),

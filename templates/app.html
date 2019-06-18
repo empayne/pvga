@@ -22,7 +22,7 @@
 
 <script>
 // Super simple project. We can just use vanilla JS.
-// TODO: at least minify this HTML.
+// TODO: at least minify this html / css / js.
 document.getElementById("cat").addEventListener("mousedown", mouseDown);
 document.getElementById("cat").addEventListener("mouseup", mouseUp);
 
@@ -44,9 +44,8 @@ function mouseUp() {
     document.getElementById("cat").innerHTML = "😺"; // finish 'animation'
 }
 
+// TODO: 'reset' is defined both here and in leaderboard.html, make this DRYer
 function reset(counterDiv, ID){
-    // TODO: refactor common .js functionalities (eg. reset)
-
     // OWASP Top 10 2017 #5: Broken Access Control
     // We blindly trust the client-side ID in our 'reset' functionality.
     // See 'routes.go' for more details.

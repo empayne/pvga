@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/empayne/pvga/db"
 	"github.com/empayne/pvga/router"
-	_ "github.com/lib/pq"
 )
 
 // OWASP Top 10 2017 #10: Insufficient Logging & Monitoring

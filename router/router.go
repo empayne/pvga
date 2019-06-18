@@ -20,6 +20,7 @@ type Router struct {
 	db     *db.Database
 }
 
+// Called in CreateRouter initialization, enables getDatabaseConnection.
 // Inspired by: https://stackoverflow.com/questions/34046194/
 func useDatabase(conn *db.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -28,6 +29,7 @@ func useDatabase(conn *db.Database) gin.HandlerFunc {
 	}
 }
 
+// Used to access the database in calls to our REST endpoints.
 // Inspired by: https://stackoverflow.com/questions/34046194/
 func getDatabaseConnection(c *gin.Context) (*db.Database, error) {
 	dbConn, ok := c.MustGet("databaseConn").(*db.Database)
@@ -42,7 +44,7 @@ func checkAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 		user := session.Get("user")
-		if user == nil {
+		if user == nil { // Redirect if the session doesn't exist.
 			c.Redirect(301, "/")
 		} else {
 			c.Next() // Continue down the chain to handler etc
@@ -50,6 +52,8 @@ func checkAuth() gin.HandlerFunc {
 	}
 }
 
+// Send back status 500 with our error code, and a stack trace if it's available
+// and we're in debug mode.
 func setErrorOnContext(c *gin.Context, err error) {
 	type stackTracer interface {
 		StackTrace() errors.StackTrace
@@ -81,6 +85,8 @@ func setErrorOnContext(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, errorJSON)
 }
 
+// We've deserialized the base64 string into a map, now validate that map's data
+// and return the bio/score that are to be UPDATEd in the database.
 func readSaveData(deserializedMap redundantserializer.SerializableMap) (*string, *int, error) {
 	bio, okBio := deserializedMap["bio"]
 	scoreStr, okScore := deserializedMap["score"]
@@ -89,7 +95,7 @@ func readSaveData(deserializedMap redundantserializer.SerializableMap) (*string,
 	}
 
 	score, err := strconv.Atoi(scoreStr)
-	if err != nil {
+	if err != nil { // invalid score if not an int
 		return nil, nil, err
 	}
 
@@ -100,6 +106,7 @@ func readSaveData(deserializedMap redundantserializer.SerializableMap) (*string,
 func CreateRouter(db *db.Database) *Router {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
+	// TODO: we should be using an actual secret here 😱
 	store := sessions.NewCookieStore([]byte("secret"))
 	router.Use(sessions.Sessions("mysession", store))
 	router.Use(useDatabase(db))

@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"log"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -26,10 +27,12 @@ type User struct {
 	IsAdmin   bool
 }
 
-// InitDatabase reads environment variables, and then opens our connection to pg.
+// InitDatabase reads in a connection string from the environment, and then
+// opens our connection to pg.
 func InitDatabase() *Database {
-	// TODO: de-hardcode
-	conn, err := sql.Open("postgres", "postgres://postgres:postgres@localhost/postgres?sslmode=disable")
+	// eg. "postgres://postgres:postgres@localhost/postgres?sslmode=disable"
+	// TODO: enable SSL on DB
+	conn, err := sql.Open("postgres", os.Getenv("PG_CONNECTION_STRING"))
 	if err != nil {
 		log.Fatal(err) // kill server if we can't use DB on startup
 	}
@@ -38,7 +41,7 @@ func InitDatabase() *Database {
 	}
 }
 
-// Assumes that there's only _one_ row and _one_ user.
+// Read one or more user from rows.
 func readUsersFromRows(rows *sql.Rows) ([]*User, error) {
 	var users []*User
 
@@ -68,6 +71,7 @@ func readUsersFromRows(rows *sql.Rows) ([]*User, error) {
 // ReadUserByUsername queries the top-level model by username (used for login).
 func (db *Database) ReadUserByUsername(username string) (*User, error) {
 	// TODO: refactor so SELECT ... FROM ... isn't repeated in three places
+	// (ReadUserByUsername, ReadUserByID, ReadUsersByClicksDescending)
 	rows, err := db.conn.Query(`
 		SELECT id, username, email, bio, password, clicks, last_click, is_admin
 		FROM users
@@ -85,16 +89,17 @@ func (db *Database) ReadUserByUsername(username string) (*User, error) {
 		return nil, err
 	}
 
-	if len(u) > 0 {
+	if len(u) > 0 { // user exists
 		return u[0], nil
 	}
 
-	return nil, nil
+	return nil, nil // user doesn't exist
 }
 
 // ReadUserByID queries the top-level model by ID (used everywhere but login).
 func (db *Database) ReadUserByID(id string) (*User, error) {
 	// TODO: refactor so SELECT ... FROM ... isn't repeated in three places
+	// (ReadUserByUsername, ReadUserByID, ReadUsersByClicksDescending)
 	rows, err := db.conn.Query(`
 		SELECT id, username, email, bio, password, clicks, last_click, is_admin
 		FROM users
@@ -113,6 +118,8 @@ func (db *Database) ReadUserByID(id string) (*User, error) {
 // IncrementClicks will update the user's click count in database.
 // This will be called a lot. Should be paired with UpdateLastClick.
 func (db *Database) IncrementClicks(id string, count int) error {
+	// TODO: now that we have both IncrementClicks and UpdateClicks, should
+	// this be refactored such that IncrementClicks doesn't need to exist?
 	_, err := db.conn.Exec(`
 		UPDATE users
 		SET clicks = clicks + $1
@@ -123,7 +130,7 @@ func (db *Database) IncrementClicks(id string, count int) error {
 }
 
 // UpdateClicks sets the user's click count to a specific value. Used by our
-// import save data functionality. Should be paird with UpdateLastClick.
+// import save data functionality. Should be paired with UpdateLastClick.
 func (db *Database) UpdateClicks(id string, count int) error {
 	_, err := db.conn.Exec(`
 		UPDATE users
@@ -161,6 +168,7 @@ func (db *Database) ResetClicks(id string) error {
 // the users with the top N clicks.
 func (db *Database) ReadUsersByClicksDescending(userCount int) ([]*User, error) {
 	// TODO: refactor so SELECT ... FROM ... isn't repeated in three places
+	// (ReadUserByUsername, ReadUserByID, ReadUsersByClicksDescending)
 	rows, err := db.conn.Query(`
 		SELECT id, username, email, bio, password, clicks, last_click, is_admin
 		FROM users

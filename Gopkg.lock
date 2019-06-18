@@ -114,17 +114,6 @@
   revision = "f24a389bbd76bf20b2139896da78cba180802939"
 
 [[projects]]
-  digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
-  name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid",
-  ]
-  pruneopts = "UT"
-  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:e150b5fafbd7607e2d638e4e5cf43aa4100124e5593385147b0a74e2733d8b0d"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
@@ -195,7 +184,6 @@
     "github.com/empayne/redundantserializer",
     "github.com/gin-gonic/contrib/sessions",
     "github.com/gin-gonic/gin",
-    "github.com/lib/pq",
     "github.com/pkg/errors",
   ]
   solver-name = "gps-cdcl"
