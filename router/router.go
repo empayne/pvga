@@ -66,6 +66,7 @@ func setErrorOnContext(c *gin.Context, err error) {
 	// We shouldn't send a stack trace in an error message, but if DEBUG is set
 	// in our environment, this information will be provided to an attacker.
 	// See UpdateBio in 'db.go' for a sample error that returns a stack trace.
+	// See 'docker-compose.yml' to see how we set DEBUG.
 	//
 	// We should have a more robust method to stop stack traces from getting
 	// into production (eg. don't just check that a custom environment variable

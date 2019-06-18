@@ -17,3 +17,15 @@ CREATE TABLE users (
   last_click TIMESTAMPTZ,
   is_admin BOOLEAN
 );
+
+-- Seed data, we didn't implement a 'Create User' page.
+INSERT INTO users 
+(username, email, bio, password, clicks, last_click, is_admin)
+VALUES
+('admin', 'admin@clickonthiscat.com', 'admin user', 'hunter2', 0, '2019-04-01 23:50:44.52908+00', true),
+('user0', 'user0@clickonthiscat.com', 'zeroth user', '8M-55a1~Ew4OkwO', 5000, '2019-04-01 23:50:44.52908+00', false),
+('user1', 'user1@clickonthiscat.com', 'first user', '%Tlz)5 ?>7O&4&C', 4000, '2019-04-01 23:50:44.52908+00', false),
+('user2', 'user2@clickonthiscat.com', 'second user', 'B7</PV{ro298b2l', 300, '2019-04-01 23:50:44.52908+00', false),
+('user3', 'user3@clickonthiscat.com', 'third user', '22392(6^8=;b/yC', 200, '2019-04-01 23:50:44.52908+00', false),
+('user4', 'user4@clickonthiscat.com', 'fourth user', '&]"<%R|7+-28t8b', 50, '2019-04-01 23:50:44.52908+00', false),
+('hacker', 'hacker@clickonthiscat.com', 'admin user', 'hackerpassword', 0, '2019-04-01 23:50:44.52908+00', false);

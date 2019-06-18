@@ -37,6 +37,10 @@
   branch = "master"
   name = "github.com/gin-gonic/contrib"
 
+[[constraint]]
+  name = "github.com/lib/pq"
+  version = "1.0.0"
+
 # OWASP Top 10 2017 #9: Using Components with Known Vulnerabilities
 # We have our redundantserializer version pinned to v1.0.0. A newer version
 # (v1.0.1) was released to fix its XXE vulnerability, but pvga will not use

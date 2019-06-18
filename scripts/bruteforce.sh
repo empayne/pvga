@@ -10,6 +10,7 @@ if [ -s "cookie.tmp" ]; then
 fi
 }
 
+# I won't include rockyou.txt in this repo, but it's trivial to find.
 while read PASSWORD; do try_password $PASSWORD; done < 'rockyou.txt'
 echo "No matches found"
 exit 1

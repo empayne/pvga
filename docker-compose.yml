@@ -1,6 +1,21 @@
 version: '3'
 
 services:
+  app:
+    image: "golang:1.12.6-alpine3.9"
+    entrypoint: /go/src/github.com/empayne/pvga/docker_entrypoint.sh
+    working_dir: "/go/src/github.com/empayne/pvga"
+    ports:
+        - "8080:8080"
+    environment:
+      # Set DEBUG here to demonstrate #6: Security Misconfiguration.
+      # See 'router.go' for more information.
+      # Using postgres:postgres creds is also a security misconfiguration :)
+      DEBUG: "true" 
+      PG_CONNECTION_STRING: "postgres://postgres:postgres@db/postgres?sslmode=disable"
+    volumes:
+      - ".:/go/src/github.com/empayne/pvga"
+
   db:
     image: postgres:latest
     restart: always
@@ -11,14 +26,14 @@ services:
     volumes:
       - database_data:/var/lib/postgresql/data
       # TODO: running initdb.d scripts is a quick, but pretty ugly way to deal
-      # with schema initialization / migration, particularly if there are
-      # multiple services talking to the same instance of pg in the future.
-      # Replace this with better migration tools.
+      # with schema initialization / migration / seed data, particularly if
+      # there are multiple services talking to the same instance of pg in the
+      # future. Replace this with better migration tools.
       - ./schema:/docker-entrypoint-initdb.d
 
 # TODO: 'go run main.go' should be spun up in a Docker container with DEBUG
 # environment variable set, PG_CONNECTION_STRING set to Docker equivalent of
-# postgres://postgres:postgres@localhost/postgres?sslmode=disable
+# 
 
 
 volumes:
